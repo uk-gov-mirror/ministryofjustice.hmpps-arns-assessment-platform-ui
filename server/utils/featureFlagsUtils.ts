@@ -20,6 +20,10 @@ export const BooleanFeatureFlags = {
   ENABLE_MPOP_ASSESSMENT_INFO: {
     fliptKey: 'sp-enable-mpop-assessment-info',
     nunjucksKey: 'mpopAssessmentInfoEnabled',
+  },  
+  DOWNTIME_NOTIFICATION_BANNER: {
+    fliptKey: 'sp-downtime-notification-banner',
+    nunjucksKey: 'downtimeNotificationBanner',
     fallbackState: false,
   },
 }
