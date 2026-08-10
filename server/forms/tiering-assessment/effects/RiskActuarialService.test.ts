@@ -193,6 +193,8 @@ describe('RiskActuarialService', () => {
       hasOtherDrugsUsage: null,
       motivationToTackleDrugMisuse: null,
       currentAlcoholUseProblems: null,
+      currentRelationshipStatus: null,
+      currentRelationshipWithPartner: null,
     })
 
     expect(mockContext.setAnswer).toHaveBeenCalledWith('risk-scores-all-reoffending-predictor-score', '0.45')
@@ -298,6 +300,9 @@ describe('RiskActuarialService', () => {
       'motivation-to-tackle-drug-misuse': 'PARTIAL_MOTIVATION',
       'is-current-alcohol-use-a-problem': 'true',
       'current-alcohol-use-problems': 'SOME_PROBLEMS',
+      'who-are-they-living-with': 'partner',
+      'important-relationships': 'partner',
+      'relationship-satisfaction': 'SOME_PROBLEMS',
     }
 
     mockContext.getAnswer.mockImplementation((key: string) => answers[key])
@@ -341,6 +346,8 @@ describe('RiskActuarialService', () => {
       hasOtherDrugsUsage: true,
       motivationToTackleDrugMisuse: 'PARTIAL_MOTIVATION' as MotivationLevel,
       currentAlcoholUseProblems: 'SOME_PROBLEMS' as ProblemLevel,
+      currentRelationshipStatus: 'IN_RELATIONSHIP_LIVING_TOGETHER',
+      currentRelationshipWithPartner: 'SOME_PROBLEMS' as ProblemLevel,
     })
 
     // TODO responses will change when enough answers provided
@@ -462,6 +469,8 @@ describe('RiskActuarialService', () => {
       hasOtherDrugsUsage: null,
       motivationToTackleDrugMisuse: null,
       currentAlcoholUseProblems: null,
+      currentRelationshipStatus: null,
+      currentRelationshipWithPartner: null,
     })
   })
 
@@ -505,6 +514,9 @@ describe('RiskActuarialService', () => {
       'other-drug-radio': 'unknown',
       'motivation-to-tackle-drug-misuse': 'unknown',
       'is-current-alcohol-use-a-problem': 'unknown',
+      'who-are-they-living-with': 'unknown',
+      'important-relationships': 'unknown',
+      'relationship-satisfaction': 'unknown',
     }
 
     mockContext.getAnswer.mockImplementation((key: string) => answers[key])
@@ -531,6 +543,8 @@ describe('RiskActuarialService', () => {
         hasOtherDrugsUsage: null,
         motivationToTackleDrugMisuse: null,
         currentAlcoholUseProblems: null,
+        currentRelationshipStatus: null,
+        currentRelationshipWithPartner: null,
       }),
     )
   })
