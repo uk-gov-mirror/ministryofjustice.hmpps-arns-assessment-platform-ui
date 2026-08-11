@@ -1,3 +1,6 @@
+import { RiskData } from '@ministryofjustice/hmpps-arns-frontend-components-lib/dist/types/RiskData'
+import { AssessmentV2 } from '@ministryofjustice/hmpps-arns-frontend-components-lib/dist/types/AssessmentV2'
+import { DateTime } from 'luxon'
 import RiskActuarialApiClient from '../../../data/riskActuarialApiClient'
 import { TieringAssessmentEffectContext } from '../@types/TieringAssessmentEffectContext'
 import {
@@ -160,6 +163,7 @@ export class RiskActuarialService {
     predictors.forEach(({ prefix, predictor }) => {
       setIfDefined(`${prefix}-score`, predictor?.output?.score)
       setIfDefined(`${prefix}-band`, predictor?.output?.band)
+      setIfDefined(`${prefix}-type`, predictor?.type)
       setIfDefined(`${prefix}-errors`, predictor?.validationErrors)
     })
 
@@ -172,9 +176,92 @@ export class RiskActuarialService {
       riskScores.actuarialPredictors?.seriousPredictor?.output?.band,
     )
     setIfDefined(
+      `risk-scores-combined-serious-reoffending-predictor-type`,
+      riskScores.actuarialPredictors?.seriousPredictor?.type,
+    )
+    setIfDefined(
       'risk-scores-combined-serious-reoffending-predictor-errors',
       riskScores.actuarialPredictors?.seriousPredictor?.validationErrors,
     )
+  }
+
+  private notApplicableHandler(band?: string): string {
+    if (!band) return null
+    return band.replaceAll('_', ' ')
+  }
+
+  riskDataTransformer(context: TieringAssessmentEffectContext): RiskData {
+
+    const arpBand = this.notApplicableHandler(context.getAnswer('risk-scores-all-reoffending-predictor-band') as string)
+    const vrpBand = this.notApplicableHandler(
+      context.getAnswer('risk-scores-violent-reoffending-predictor-band') as string,
+    )
+    const svrpBand = this.notApplicableHandler(
+      context.getAnswer('risk-scores-serious-violent-reoffending-predictor-band') as string,
+    )
+    const dcsrpBand = this.notApplicableHandler(
+      context.getAnswer('risk-scores-direct-contact-sexual-reoffending-predictor-band') as string,
+    )
+    const iicsrpBand = this.notApplicableHandler(
+      context.getAnswer('risk-scores-indirect-contact-sexual-reoffending-predictor-band') as string,
+    )
+    const csrpBand = this.notApplicableHandler(
+      context.getAnswer('risk-scores-combined-serious-reoffending-predictor-band') as string,
+    )
+
+    const currentAssessment: AssessmentV2 = {
+      outputVersion: '2',
+      completedDate: DateTime.now().toString(),
+      completedDateTime: DateTime.now().toString(),
+      assessmentType: 'LAYER1',
+      allReoffendingPredictor: {
+        name: 'All reoffending predictor',
+        band: arpBand,
+        score: context.getAnswer('risk-scores-all-reoffending-predictor-score') as number,
+        staticOrDynamic: context.getAnswer('risk-scores-all-reoffending-predictor-type') as string,
+        completedDate: DateTime.now().toString(),
+      },
+      violentReoffendingPredictor: {
+        name: 'Violent reoffending predictor',
+        band: vrpBand,
+        score: context.getAnswer('risk-scores-violent-reoffending-predictor-score') as number,
+        staticOrDynamic: context.getAnswer('risk-scores-violent-reoffending-predictor-type') as string,
+        completedDate: DateTime.now().toString(),
+      },
+      seriousViolentReoffendingPredictor: {
+        name: 'Serious violent reoffending predictor',
+        band: svrpBand,
+        score: context.getAnswer('risk-scores-serious-violent-reoffending-predictor-score') as number,
+        staticOrDynamic: context.getAnswer('risk-scores-serious-violent-reoffending-predictor-type') as string,
+        completedDate: DateTime.now().toString(),
+      },
+      directContactSexualReoffendingPredictor: {
+        name: 'Direct contact \u2013 sexual reoffending predictor',
+        band: dcsrpBand,
+        score: context.getAnswer('risk-scores-direct-contact-sexual-reoffending-predictor-score') as number,
+        staticOrDynamic: context.getAnswer('risk-scores-direct-contact-sexual-reoffending-predictor-type') as string,
+        completedDate: DateTime.now().toString(),
+      },
+      indirectImageContactSexualReoffendingPredictor: {
+        name: 'Images and indirect contact \u2013 sexual reoffending predictor',
+        band: iicsrpBand,
+        score: context.getAnswer('risk-scores-indirect-contact-sexual-reoffending-predictor-score') as number,
+        staticOrDynamic: context.getAnswer('risk-scores-indirect-contact-sexual-reoffending-predictor-type') as string,
+        completedDate: DateTime.now().toString(),
+      },
+      combinedSeriousReoffendingPredictor: {
+        name: 'Combined serious reoffending predictor',
+        band: csrpBand,
+        score: context.getAnswer('risk-scores-combined-serious-reoffending-predictor-score') as number,
+        staticOrDynamic: context.getAnswer('risk-scores-combined-serious-reoffending-predictor-type') as string,
+        completedDate: DateTime.now().toString(),
+      },
+    }
+
+    return {
+      httpStatus: 200,
+      assessments: [currentAssessment],
+    }
   }
 
   private calculateAgeAtDate(dob?: string, targetDate?: string): number | null {
