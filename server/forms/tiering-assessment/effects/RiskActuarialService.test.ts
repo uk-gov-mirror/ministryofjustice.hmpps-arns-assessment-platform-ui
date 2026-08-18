@@ -201,6 +201,8 @@ describe('RiskActuarialService', () => {
       temperControl: null,
       impulsivityProblems: null,
       proCriminalAttitudes: null,
+      didOffenceInvolveCarryingOrUsingWeapon: null,
+      evidenceOfDomesticAbuse: null,
     })
 
     expect(mockContext.setAnswer).toHaveBeenCalledWith('risk-scores-all-reoffending-predictor-score', '0.45')
@@ -315,6 +317,8 @@ describe('RiskActuarialService', () => {
       'temper-control': 'SOME_PROBLEMS',
       'impulsivity-problems': 'NO_PROBLEMS',
       'pro-criminal-attitudes': 'SIGNIFICANT_PROBLEMS',
+      'offence-elements': 'domestic-abuse,excessive-violence-or-sadistic-violence,weapon',
+      'evidence-of-domestic-abuse': 'true',
     }
 
     mockContext.getAnswer.mockImplementation((key: string) => answers[key])
@@ -365,6 +369,8 @@ describe('RiskActuarialService', () => {
       temperControl: 'SOME_PROBLEMS' as ProblemLevel,
       impulsivityProblems: 'NO_PROBLEMS' as ProblemLevel,
       proCriminalAttitudes: 'SIGNIFICANT_PROBLEMS' as ProblemLevel,
+      didOffenceInvolveCarryingOrUsingWeapon: true,
+      evidenceOfDomesticAbuse: true,
     })
 
     // TODO responses will change when enough answers provided
@@ -493,6 +499,8 @@ describe('RiskActuarialService', () => {
       temperControl: null,
       impulsivityProblems: null,
       proCriminalAttitudes: null,
+      didOffenceInvolveCarryingOrUsingWeapon: null,
+      evidenceOfDomesticAbuse: null,
     })
   })
 
@@ -585,7 +593,7 @@ describe('RiskActuarialService', () => {
   it('should parse IN_RELATIONSHIP_LIVING_TOGETHER for currentRelationshipStatus if "who-are-they-living-with" and "important-relationships" include "partner"', async () => {
     const answers: Record<string, unknown> = {
       'who-are-they-living-with': 'partner,family',
-      'important-relationships': 'partner,family',
+      'important-relationships': 'partner,family-members',
     }
 
     mockContext.getAnswer.mockImplementation((key: string) => answers[key])
@@ -802,6 +810,37 @@ describe('RiskActuarialService', () => {
     expect(mockApiClient.getRiskScores).toHaveBeenCalledWith(
       expect.objectContaining({
         excessiveAlcoholUse: 'SIGNIFICANT_PROBLEMS',
+      }),
+    )
+  })
+
+  it('should return true if "offence-elements" contains "weapon"', async () => {
+    const answers: Record<string, unknown> = {
+      'offence-elements': 'arson,weapon',
+    }
+
+    mockContext.getAnswer.mockImplementation((key: string) => answers[key])
+
+    await service.calculateAndSaveScores(mockContext)
+
+    expect(mockApiClient.getRiskScores).toHaveBeenCalledWith(
+      expect.objectContaining({
+        didOffenceInvolveCarryingOrUsingWeapon: true,
+      }),
+    )
+  })
+  it('should return false if "offence-elements" does not contain "weapon"', async () => {
+    const answers: Record<string, unknown> = {
+      'offence-elements': 'arson,hatred-of-identifiable-group',
+    }
+
+    mockContext.getAnswer.mockImplementation((key: string) => answers[key])
+
+    await service.calculateAndSaveScores(mockContext)
+
+    expect(mockApiClient.getRiskScores).toHaveBeenCalledWith(
+      expect.objectContaining({
+        didOffenceInvolveCarryingOrUsingWeapon: false,
       }),
     )
   })
